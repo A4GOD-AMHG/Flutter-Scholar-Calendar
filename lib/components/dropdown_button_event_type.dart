@@ -33,17 +33,17 @@ class _DropdownButtonEventTypeWidgetState
     return Padding(
       padding: const EdgeInsets.only(right: 15),
       child: DropdownButton<EventType>(
-        dropdownColor: Theme.of(context).backgroundColor,
+        dropdownColor: Theme.of(context).colorScheme.surface,
         style: TextStyle(
           fontSize: 18,
-          color: Theme.of(context).textTheme.bodyText1!.color,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
         value: EventTypeModel.fromString(DropdownButtonEventTypeWidget.value),
         hint: Text(
           "Tipo de evento",
           style: TextStyle(
               fontSize: 18,
-              color: Theme.of(context).textTheme.bodyText1!.color),
+              color: Theme.of(context).colorScheme.onSurface),
         ),
         onChanged: (EventType? value) {
           setState(() {

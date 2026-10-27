@@ -51,17 +51,17 @@ class _DropdownButtonSignatureWidgetState
     return Padding(
       padding: const EdgeInsets.only(left: 15),
       child: DropdownButton(
-        dropdownColor: Theme.of(context).backgroundColor,
+        dropdownColor: Theme.of(context).colorScheme.surface,
         style: TextStyle(
           fontSize: 18,
-          color: Theme.of(context).textTheme.bodyText1!.color,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
         value: DropdownButtonSignatureWidget.value,
         hint: Text(
           "Asignatura",
           style: TextStyle(
               fontSize: 18,
-              color: Theme.of(context).textTheme.bodyText1!.color),
+              color: Theme.of(context).colorScheme.onSurface),
         ),
         onChanged: (String? newValue) async {
           if (newValue != null) {

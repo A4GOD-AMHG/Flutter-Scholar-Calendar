@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:scholar_calendar/controllers/database_controller.dart';
 import 'package:scholar_calendar/models/signature.dart';
 import 'package:scholar_calendar/screens/home_page.dart';
@@ -43,13 +42,12 @@ class _DialogSignatureWidgetState extends State<DialogSignatureWidget> {
       _existSignatureSymbology = true;
       _editing = true;
     }
-    print(_textAddSignatureName);
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Stack(
         children: [
           Column(
@@ -62,7 +60,7 @@ class _DialogSignatureWidgetState extends State<DialogSignatureWidget> {
                 "${(_editing) ? "Editar" : "Agregar"} Asignatura",
                 style: TextStyle(
                     fontSize: 18,
-                    color: Theme.of(context).textTheme.bodyText1!.color),
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
               Container(
                 child: Form(
@@ -75,11 +73,11 @@ class _DialogSignatureWidgetState extends State<DialogSignatureWidget> {
                           labelText: "Nombre",
                           labelStyle: TextStyle(
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color),
+                                  Theme.of(context).colorScheme.onSurface),
                         ),
                         style: TextStyle(
                           fontSize: 18,
-                          color: Theme.of(context).textTheme.bodyText1!.color,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         onSaved: (newValue) {
                           _textAddSignatureName = newValue!;
@@ -102,11 +100,11 @@ class _DialogSignatureWidgetState extends State<DialogSignatureWidget> {
                           labelText: "Simbología",
                           labelStyle: TextStyle(
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color),
+                                  Theme.of(context).colorScheme.onSurface),
                         ),
                         style: TextStyle(
                           fontSize: 18,
-                          color: Theme.of(context).textTheme.bodyText1!.color,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         onSaved: (newValue) {
                           _textAddSignatureNameSymbology = newValue!;

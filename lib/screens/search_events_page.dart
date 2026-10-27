@@ -1,6 +1,5 @@
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:scholar_calendar/components/bottom_sheet_add_event_widget.dart';
 import 'package:scholar_calendar/components/dropdown_button_event_type.dart';
@@ -24,7 +23,7 @@ class _SearchEventsPageState extends State<SearchEventsPage> {
   @override
   void initState() {
     if (getShowDiscovery(key_search_events) ?? true) {
-      SchedulerBinding.instance!.addPostFrameCallback((Duration duration) =>
+      WidgetsBinding.instance.addPostFrameCallback((Duration duration) =>
           showDiscovery(cont,
               listId: [kFeatureId8SearchEvents], key: key_search_events));
     }
@@ -65,7 +64,7 @@ class _SearchEventsPageState extends State<SearchEventsPage> {
       delegate: CustomSearchDelegate(
         context,
         searchFieldStyle:
-            TextStyle(color: Theme.of(context).textTheme.bodyText1!.color),
+            TextStyle(color: Theme.of(context).colorScheme.onSurface),
       ),
     );
   }
@@ -141,7 +140,7 @@ class CustomSearchDelegate extends SearchDelegate {
           child: Text(
             "No se han encontrado resultados.",
             style: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ));
     }
@@ -192,7 +191,7 @@ class CustomSearchDelegate extends SearchDelegate {
                       textDate,
                       style: TextStyle(
                           fontWeight: FontWeight.w900,
-                          color: Theme.of(context).textTheme.bodyText1!.color),
+                          color: Theme.of(context).colorScheme.onSurface),
                     ),
                   ),
                   _buildListTile(context, signature, event),
@@ -218,7 +217,7 @@ class CustomSearchDelegate extends SearchDelegate {
             child: Text(
               "No se han encontrado resultados.",
               style: TextStyle(
-                color: Theme.of(context).textTheme.bodyText1!.color,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             )),
       );
@@ -271,7 +270,7 @@ class CustomSearchDelegate extends SearchDelegate {
                       textDate,
                       style: TextStyle(
                           fontWeight: FontWeight.w900,
-                          color: Theme.of(context).textTheme.bodyText1!.color),
+                          color: Theme.of(context).colorScheme.onSurface),
                     ),
                   ),
                   _buildListTile(context, signature, event)
@@ -295,7 +294,7 @@ class CustomSearchDelegate extends SearchDelegate {
       title: Text(
         event.name,
         style: TextStyle(
-          color: Theme.of(context).textTheme.bodyText1!.color,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
@@ -305,7 +304,7 @@ class CustomSearchDelegate extends SearchDelegate {
             " - " +
             DateFormat('hh:mm a', 'es_ES').format(event.endTime),
         style: TextStyle(
-          color: Theme.of(context).textTheme.bodyText1!.color,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

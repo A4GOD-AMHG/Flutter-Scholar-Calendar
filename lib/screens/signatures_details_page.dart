@@ -1,6 +1,5 @@
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
@@ -27,7 +26,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
   @override
   void initState() {
     if (getShowDiscovery(key_view_signatures) ?? true) {
-      SchedulerBinding.instance!.addPostFrameCallback((Duration duration) =>
+      WidgetsBinding.instance.addPostFrameCallback((Duration duration) =>
           showDiscovery(cont,
               listId: [kFeatureId3Slidable], key: key_view_signatures));
     }
@@ -47,12 +46,13 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
     setState(() {
       cont = context;
     });
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) Get.offAll(() => const MyHomePage());
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           title: Text(
             "Asignaturas",
@@ -90,7 +90,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
                         Text(
                           "No se han agregado asignaturas aún",
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText1!.color,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         )
                       ],
@@ -105,7 +105,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
                     return (index == 0)
                         ? buildWidget(context,
                             featureId: kFeatureId3Slidable,
-                            tapTarget: Icon(Icons.class__outlined),
+                            tapTarget: Icon(Icons.class_outlined),
                             child: _buildSlidable(
                                 context, index, snapshot, signature),
                             contentLocation: ContentLocation.below,
@@ -124,24 +124,24 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
         floatingActionButton: SpeedDial(
           backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
           activeBackgroundColor: Colors.red,
-          overlayColor: Theme.of(context).backgroundColor,
+          overlayColor: Theme.of(context).colorScheme.surface,
           overlayOpacity: 0.5,
           spacing: 5,
           spaceBetweenChildren: 15,
           animatedIcon: AnimatedIcons.menu_close,
           children: [
             SpeedDialChild(
-              backgroundColor: Theme.of(context).textTheme.bodyText1!.color,
+              backgroundColor: Theme.of(context).colorScheme.onSurface,
               child: Icon(
                 Icons.add,
               ),
               label: "Agregar Asignatura",
               labelStyle: TextStyle(
-                color: Theme.of(context).backgroundColor,
+                color: Theme.of(context).colorScheme.surface,
               ),
               labelBackgroundColor:
-                  Theme.of(context).textTheme.bodyText1!.color,
-              foregroundColor: Theme.of(context).backgroundColor,
+                  Theme.of(context).colorScheme.onSurface,
+              foregroundColor: Theme.of(context).colorScheme.surface,
               onTap: () async {
                 await _showDialogSignature(
                   context,
@@ -153,17 +153,17 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
             ),
             if (hasSignatures)
               SpeedDialChild(
-                backgroundColor: Theme.of(context).textTheme.bodyText1!.color,
+                backgroundColor: Theme.of(context).colorScheme.onSurface,
                 child: Icon(
                   Icons.delete,
                 ),
                 label: "Eliminar todas las asignaturas",
                 labelStyle: TextStyle(
-                  color: Theme.of(context).backgroundColor,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
                 labelBackgroundColor:
-                    Theme.of(context).textTheme.bodyText1!.color,
-                foregroundColor: Theme.of(context).backgroundColor,
+                    Theme.of(context).colorScheme.onSurface,
+                foregroundColor: Theme.of(context).colorScheme.surface,
                 onTap: () async {
                   _showDialogDeleteAllSignatures(context);
                 },
@@ -184,21 +184,21 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
       key: ValueKey(signature!.id),
       child: ListTile(
         leading: Icon(
-          Icons.class__outlined,
-          color: Theme.of(context).textTheme.bodyText1!.color,
+          Icons.class_outlined,
+          color: Theme.of(context).colorScheme.onSurface,
           size: 50,
         ),
         title: Text(
           signature.name,
           style: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w900),
         ),
         isThreeLine: true,
         subtitle: Text(
           "${signature.symbology}\n${snapshot.data![index][1]} ${(snapshot.data![index][1] == 1) ? "evento" : "eventos"}",
           style: TextStyle(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -251,7 +251,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
     showDialog(
         context: context,
         builder: (BuildContext context) => Dialog(
-              backgroundColor: Theme.of(context).backgroundColor,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               child: Stack(
                 children: [
                   Column(
@@ -270,10 +270,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
                               "¿Desea eliminar todas las asignaturas?",
                               style: TextStyle(
                                   fontSize: 18,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1!
-                                      .color),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             ),
                             ListTile(
                               leading: Icon(
@@ -283,10 +280,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
                                 "Nota: Al eliminar todas las asignaturas todos los eventos y alarmas serán eliminados",
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText1!
-                                        .color),
+                                    color: Theme.of(context).colorScheme.onSurface),
                               ),
                             )
                           ],
@@ -328,7 +322,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
     showDialog(
         context: context,
         builder: (BuildContext context) => Dialog(
-              backgroundColor: Theme.of(context).backgroundColor,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               child: Stack(
                 children: [
                   Column(
@@ -347,7 +341,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
                           style: TextStyle(
                               fontSize: 18,
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color),
+                                  Theme.of(context).colorScheme.onSurface),
                         ),
                       ),
                       SizedBox(
@@ -362,7 +356,7 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
                           style: TextStyle(
                               fontSize: 14,
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color),
+                                  Theme.of(context).colorScheme.onSurface),
                         ),
                       ),
                       Row(

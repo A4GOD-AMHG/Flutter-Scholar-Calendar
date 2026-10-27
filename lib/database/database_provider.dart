@@ -203,7 +203,7 @@ class DatabaseProvider {
       'eventType': event.eventType.asString,
       'startTime': event.startTime.toString(),
       'endTime': event.endTime.toString(),
-      'color': event.color.value,
+      'color': event.color.toARGB32(),
       'idSignature': idSignature,
       'idAlarm': idAlarm,
     });
@@ -250,7 +250,7 @@ class DatabaseProvider {
       event.eventType.asString,
       event.startTime.toString(),
       event.endTime.toString(),
-      event.color.value,
+      event.color.toARGB32(),
       idSignature,
       event.id
     ]);

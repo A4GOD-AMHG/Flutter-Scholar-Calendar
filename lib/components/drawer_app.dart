@@ -31,7 +31,7 @@ class DrawerApp extends StatelessWidget {
               style: TextStyle(fontSize: 18),
             ),
             leading: const Icon(
-              Icons.class__outlined,
+              Icons.class_outlined,
             ),
             onTap: () {
               Get.offAll(() => SignaturesDetailsPage());

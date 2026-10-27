@@ -37,7 +37,7 @@ class _FloatingActionButtonSpeedDialState
     return SpeedDial(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         activeBackgroundColor: Colors.red,
-        overlayColor: Theme.of(context).backgroundColor,
+        overlayColor: Theme.of(context).colorScheme.surface,
         overlayOpacity: 0.5,
         spacing: 5,
         spaceBetweenChildren: 15,
@@ -45,17 +45,17 @@ class _FloatingActionButtonSpeedDialState
         children: [
           if (hasSignatures)
             SpeedDialChild(
-              backgroundColor: Theme.of(context).textTheme.bodyText1!.color,
+              backgroundColor: Theme.of(context).colorScheme.onSurface,
               child: Icon(
                 Icons.add_alarm_outlined,
               ),
               label: "Añadir Evento",
               labelStyle: TextStyle(
-                color: Theme.of(context).backgroundColor,
+                color: Theme.of(context).colorScheme.surface,
               ),
               labelBackgroundColor:
-                  Theme.of(context).textTheme.bodyText1!.color,
-              foregroundColor: Theme.of(context).backgroundColor,
+                  Theme.of(context).colorScheme.onSurface,
+              foregroundColor: Theme.of(context).colorScheme.surface,
               onTap: () => showModalBottomSheet(
                   isScrollControlled: true,
                   enableDrag: true,
@@ -67,29 +67,29 @@ class _FloatingActionButtonSpeedDialState
                   builder: (context) => BottomSheetAddEventWidget()),
             ),
           SpeedDialChild(
-            backgroundColor: Theme.of(context).textTheme.bodyText1!.color,
+            backgroundColor: Theme.of(context).colorScheme.onSurface,
             child: Icon(
               Icons.add,
             ),
             label: "Agregar Asignatura",
             labelStyle: TextStyle(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.surface,
             ),
-            labelBackgroundColor: Theme.of(context).textTheme.bodyText1!.color,
-            foregroundColor: Theme.of(context).backgroundColor,
+            labelBackgroundColor: Theme.of(context).colorScheme.onSurface,
+            foregroundColor: Theme.of(context).colorScheme.surface,
             onTap: _showDialogAddSignature,
           ),
           SpeedDialChild(
-            backgroundColor: Theme.of(context).textTheme.bodyText1!.color,
+            backgroundColor: Theme.of(context).colorScheme.onSurface,
             child: Icon(
-              Icons.class__outlined,
+              Icons.class_outlined,
             ),
             label: "Ver Asignaturas",
             labelStyle: TextStyle(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.surface,
             ),
-            labelBackgroundColor: Theme.of(context).textTheme.bodyText1!.color,
-            foregroundColor: Theme.of(context).backgroundColor,
+            labelBackgroundColor: Theme.of(context).colorScheme.onSurface,
+            foregroundColor: Theme.of(context).colorScheme.surface,
             onTap: () {
               Get.offAll(() => SignaturesDetailsPage());
             },

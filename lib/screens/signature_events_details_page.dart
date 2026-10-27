@@ -13,7 +13,7 @@ class SignatureEventsDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           signature.name,
@@ -51,7 +51,7 @@ class SignatureEventsDetailsPage extends StatelessWidget {
                       Text(
                         "No hay eventos asociados a la asignatura",
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText1!.color,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       )
                     ],
@@ -84,7 +84,7 @@ class SignatureEventsDetailsPage extends StatelessWidget {
                       title: Text(
                         event.name,
                         style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText1!.color,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w900),
                       ),
                       isThreeLine: true,
@@ -93,7 +93,7 @@ class SignatureEventsDetailsPage extends StatelessWidget {
                         "Fecha: ${DateFormat('EEEE, d', 'es_ES').format(event.startTime)} de ${DateFormat('MMMM', 'es_ES').format(event.startTime)} a las ${DateFormat('hh:mm a', 'es_ES').format(event.startTime)}\n"
                         "Duración: ${event.endTime.difference(event.startTime).inMinutes} minutos",
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyText1!.color,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -122,7 +122,7 @@ class SignatureEventsDetailsPage extends StatelessWidget {
                   "Ayuda",
                   style: TextStyle(
                       fontSize: 18,
-                      color: Theme.of(context).textTheme.bodyText1!.color),
+                      color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
               Container(

@@ -45,7 +45,7 @@ class Event {
       'eventType': eventType.asString,
       'startTime': startTime.toString(),
       'endTime': endTime.toString(),
-      'color': color.value,
+      'color': color.toARGB32(),
       'idSignature': idSignature,
       'idAlarm': idAlarm,
     };

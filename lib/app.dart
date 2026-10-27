@@ -1,7 +1,7 @@
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:klocalizations_flutter/klocalizations_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:scholar_calendar/controllers/database_controller.dart';
 import 'package:scholar_calendar/screens/home_page.dart';
 import 'package:scholar_calendar/themes/theme.dart';

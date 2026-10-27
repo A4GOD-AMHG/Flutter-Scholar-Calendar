@@ -13,7 +13,6 @@ import 'package:scholar_calendar/screens/search_events_page.dart';
 import 'package:scholar_calendar/utils/features_discoveries.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import 'package:feature_discovery/feature_discovery.dart';
@@ -35,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     if (getShowDiscovery(key_home) ?? true) {
-      SchedulerBinding.instance!.addPostFrameCallback((Duration duration) =>
+      WidgetsBinding.instance.addPostFrameCallback((Duration duration) =>
           showDiscovery(cont,
               listId: [kFeatureId1DeleteAllEvents], key: key_home));
     }
@@ -120,11 +119,11 @@ class _MyHomePageState extends State<MyHomePage> {
         monthViewSettings: MonthViewSettings(
           agendaStyle: AgendaStyle(
             dateTextStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               locale: Locale('es_ES'),
             ),
             dayTextStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               locale: Locale('es_ES'),
             ),
           ),
@@ -137,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
               locale: Locale('es_ES'),
             ),
             textStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               locale: Locale('es_ES'),
             ),
           ),
@@ -145,14 +144,14 @@ class _MyHomePageState extends State<MyHomePage> {
         scheduleViewSettings: ScheduleViewSettings(
           monthHeaderSettings: MonthHeaderSettings(
             monthTextStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               locale: Locale('es_ES'),
             ),
           ),
           weekHeaderSettings: WeekHeaderSettings(
             backgroundColor: Colors.black26,
             weekTextStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               locale: Locale('es_ES'),
             ),
           ),
@@ -161,24 +160,24 @@ class _MyHomePageState extends State<MyHomePage> {
         onDragEnd: _onDragEnd,
         viewHeaderStyle: ViewHeaderStyle(
           dateTextStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+            color: Theme.of(context).colorScheme.onSurface,
             locale: Locale('es_ES'),
           ),
           dayTextStyle:
-              TextStyle(color: Theme.of(context).textTheme.bodyText1!.color),
+              TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         todayHighlightColor: Theme.of(context).primaryColor.withBlue(170),
         cellBorderColor: Color(0xFF373739),
         headerStyle: CalendarHeaderStyle(
-          backgroundColor: Theme.of(context).highlightColor,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
           textStyle: TextStyle(
-            color: Theme.of(context).textTheme.bodyText1!.color,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         weekNumberStyle: WeekNumberStyle(
-          backgroundColor: Theme.of(context).highlightColor,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
           textStyle:
-              TextStyle(color: Theme.of(context).textTheme.bodyText1!.color),
+              TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         view: CalendarView.week,
         allowViewNavigation: true,
@@ -196,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _calendarController,
         firstDayOfWeek: 1,
         allowAppointmentResize: true,
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         timeSlotViewSettings: const TimeSlotViewSettings(
           endHour: 24,
           timeIntervalHeight: 80,
@@ -209,7 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           timeRulerSize: 80,
         ),
-        todayTextStyle: TextStyle(color: Theme.of(context).backgroundColor),
+        todayTextStyle: TextStyle(color: Theme.of(context).colorScheme.surface),
       ),
       floatingActionButton: FloatingActionButtonSpeedDial(),
     );
@@ -219,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
         context: context,
         builder: (BuildContext context) => Dialog(
-              backgroundColor: Theme.of(context).backgroundColor,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               child: Stack(
                 children: [
                   Column(
@@ -238,10 +237,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               "¿Desea eliminar todos los eventos?",
                               style: TextStyle(
                                   fontSize: 18,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1!
-                                      .color),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             ),
                             ListTile(
                               leading: Icon(
@@ -251,10 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 "Nota: Al eliminar todos los eventos todas las alarmas serán eliminadas",
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText1!
-                                        .color),
+                                    color: Theme.of(context).colorScheme.onSurface),
                               ),
                             )
                           ],
@@ -307,7 +300,7 @@ class _MyHomePageState extends State<MyHomePage> {
         body: alarm!.description!,
         payload: event.name,
         scheduledDate: appointmentDragEndDetails.droppingTime!,
-        sound: 'alarm.wav',
+        
       );
     }
     if (isUpdated) {
@@ -399,7 +392,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Text(
             (appointment.notes != null) ? appointment.subject : " ",
             style: TextStyle(
-              color: Theme.of(context).textTheme.bodyText1!.color,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 12,
             ),
             textAlign: TextAlign.center,

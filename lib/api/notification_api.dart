@@ -6,62 +6,60 @@ class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
   static final onNotifications = BehaviorSubject<String?>();
 
-  static Future notificationDetails(String sound) async {
-    return NotificationDetails(
-      android: AndroidNotificationDetails(
-        'channel id',
-        'channel name',
-        channelDescription: 'channel description',
-        importance: Importance.max,
-        sound: RawResourceAndroidNotificationSound(sound.split('.').first),
-        enableVibration: true,
-      ),
-      iOS: IOSNotificationDetails(
-        sound: sound,
-      ),
-    );
-  }
+  static const _details = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'event_alarms',
+      'Alarmas de eventos',
+      channelDescription: 'Alarmas y recordatorios de los eventos escolares',
+      importance: Importance.max,
+      priority: Priority.high,
+      enableVibration: true,
+    ),
+    iOS: DarwinNotificationDetails(),
+  );
 
-  static Future init({bool initScheduled = false}) async {
-    var initializationSettingsAndroid =
-        const AndroidInitializationSettings('@mipmap/launcher_icon');
-    var initializationSettingsIOS = const IOSInitializationSettings();
-    final settings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+  static Future init() async {
+    const settings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+      iOS: DarwinInitializationSettings(),
+    );
 
     final details = await _notifications.getNotificationAppLaunchDetails();
     if (details != null && details.didNotificationLaunchApp) {
-      onNotifications.add(details.payload);
+      onNotifications.add(details.notificationResponse?.payload);
     }
 
     await _notifications.initialize(
-      settings,
-      onSelectNotification: (payload) async {
-        onNotifications.add(payload);
-      },
+      settings: settings,
+      onDidReceiveNotificationResponse: (response) =>
+          onNotifications.add(response.payload),
     );
+
+    final android = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
+    await android?.requestExactAlarmsPermission();
   }
 
-  static Future showScheduledNotification(
-      {required int id,
-      String? title,
-      String? body,
-      String? payload,
-      required DateTime scheduledDate,
-      required String sound}) async {
-    _notifications.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      await notificationDetails(sound),
+  static Future showScheduledNotification({
+    required int id,
+    String? title,
+    String? body,
+    String? payload,
+    required DateTime scheduledDate,
+  }) async {
+    await _notifications.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      // tz.local is never initialised; UTC keeps the same absolute instant.
+      scheduledDate: tz.TZDateTime.from(scheduledDate, tz.UTC),
+      notificationDetails: _details,
       payload: payload,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
-  static void cancel(int id) => _notifications.cancel(id);
+  static void cancel(int id) => _notifications.cancel(id: id);
   static void cancelAll() => _notifications.cancelAll();
 }

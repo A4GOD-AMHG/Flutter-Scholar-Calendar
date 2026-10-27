@@ -3,10 +3,9 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
-import 'package:klocalizations_flutter/klocalizations_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:scholar_calendar/api/notification_api.dart';
 import 'package:scholar_calendar/components/dialog_add_alert_widget.dart';
 import 'package:scholar_calendar/components/dropdown_button_event_type.dart';
@@ -74,7 +73,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
         setShowDiscovery(false, key_delete_event);
       }
 
-      SchedulerBinding.instance!
+      WidgetsBinding.instance
           .addPostFrameCallback((Duration duration) async {
         showDiscovery(cont, listId: listId, key: key_add_event);
       });
@@ -96,8 +95,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
       _textAlarmDescription = "";
 
       _dialogSelectColor =
-          Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
-              .withOpacity(1.0);
+          Color(0xFF000000 | math.Random().nextInt(0x1000000));
     }
   }
 
@@ -122,7 +120,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
     });
     var size = MediaQuery.of(context).size;
     return Container(
-      color: Theme.of(context).backgroundColor,
+      color: Theme.of(context).colorScheme.surface,
       padding: EdgeInsets.only(top: size.height * 1 / 25),
       child: ListView(
         children: [
@@ -139,7 +137,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                           (_editing) ? "Editar Evento" : "Añadir Evento",
                           style: TextStyle(
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color,
+                                  Theme.of(context).colorScheme.onSurface,
                               fontSize: 18),
                         ),
                         Padding(
@@ -176,40 +174,23 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                                                   context,
                                                   _dialogSelectColor,
                                                   backgroundColor:
-                                                      Theme
-                                                              .of(context)
-                                                          .backgroundColor,
+                                                      Theme.of(context).colorScheme.surface,
                                                   selectedPickerTypeColor:
-                                                      Theme
-                                                              .of(context)
-                                                          .highlightColor,
+                                                      Theme.of(context).colorScheme.surfaceContainerHigh,
                                                   borderColor:
-                                                      Theme
-                                                              .of(context)
-                                                          .textTheme
-                                                          .bodyText1!
-                                                          .color,
+                                                      Theme.of(context).colorScheme.onSurface,
                                                   title: Text(
                                                     "Seleccione el color",
                                                     style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyText1!
-                                                          .color,
+                                                      color: Theme.of(context).colorScheme.onSurface,
                                                     ),
                                                   ),
                                                   titleTextStyle: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyText1!
-                                                        .color,
+                                                    color: Theme.of(context).colorScheme.onSurface,
                                                   ),
                                                   pickerTypeTextStyle:
                                                       TextStyle(
-                                                    color: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyText1!
-                                                        .color,
+                                                    color: Theme.of(context).colorScheme.onSurface,
                                                   ),
                                                   pickerTypeLabels: <
                                                       ColorPickerType, String>{
@@ -249,15 +230,12 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                             decoration: InputDecoration(
                               labelText: "Nombre",
                               labelStyle: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1!
-                                      .color),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             ),
                             style: TextStyle(
                               fontSize: 18,
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color,
+                                  Theme.of(context).colorScheme.onSurface,
                             ),
                             onSaved: (newValue) {
                               _textEventName = newValue!;
@@ -278,23 +256,17 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                             decoration: InputDecoration(
                               labelText: "Descripción",
                               labelStyle: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1!
-                                      .color),
+                                  color: Theme.of(context).colorScheme.onSurface),
                               suffix: Icon(Icons.event_note_outlined),
                               helperText: "Opcional",
                               helperStyle: TextStyle(
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .color,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             style: TextStyle(
                               fontSize: 18,
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color,
+                                  Theme.of(context).colorScheme.onSurface,
                             ),
                             onSaved: (newValue) {
                               _textAlarmDescription = newValue!;
@@ -366,15 +338,9 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                                 textTheme: CupertinoTextThemeData(
                                     pickerTextStyle: TextStyle(
                                         fontSize: 18,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1!
-                                            .color),
+                                        color: Theme.of(context).colorScheme.onSurface),
                                     dateTimePickerTextStyle: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1!
-                                            .color)),
+                                        color: Theme.of(context).colorScheme.onSurface)),
                                 brightness: Theme.of(context).brightness),
                             child: CupertinoDatePicker(
                               mode: CupertinoDatePickerMode.dateAndTime,
@@ -433,15 +399,9 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                                 textTheme: CupertinoTextThemeData(
                                     pickerTextStyle: TextStyle(
                                         fontSize: 18,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1!
-                                            .color),
+                                        color: Theme.of(context).colorScheme.onSurface),
                                     dateTimePickerTextStyle: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1!
-                                            .color)),
+                                        color: Theme.of(context).colorScheme.onSurface)),
                                 brightness: Theme.of(context).brightness),
                             child: CupertinoTimerPicker(
                               initialTimerDuration: _duration,
@@ -482,10 +442,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                             Text(
                               "Alarma",
                               style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1!
-                                      .color,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 18),
                             ),
                             Row(
@@ -588,10 +545,10 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
               blurRadius: 5,
             ),
           ],
-          color: Theme.of(context).highlightColor,
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
           border: Border.all(
             width: 0.1,
-            color: Theme.of(context).textTheme.bodyText1!.color!,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           borderRadius: BorderRadius.circular(20)),
       child: child,
@@ -687,15 +644,13 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
       }
       if (_notificationIsEnabled) {
         if (_alert.compareTo(Duration()) != 0) {
-          print((event.idAlarm! * -1) - 1);
-          print("aqui");
           await NotificationApi.showScheduledNotification(
             id: (event.idAlarm! * -1) - 1,
             title: "Recordatorio del evento " + event.name,
             body:
                 "Este evento será dentro de  ${_alert.inMinutes} ${(_alert.inMinutes == 1) ? "minuto" : "minutos"}",
             scheduledDate: startTime.subtract(_alert),
-            sound: 'alarm.wav',
+            
           );
         }
         await NotificationApi.showScheduledNotification(
@@ -703,7 +658,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
           title: event.name,
           body: alarm.description,
           scheduledDate: startTime,
-          sound: 'alarm.wav',
+          
         );
       }
 
@@ -731,7 +686,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
     showDialog(
         context: context,
         builder: (BuildContext context) => Dialog(
-              backgroundColor: Theme.of(context).backgroundColor,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               child: Stack(
                 children: [
                   Column(
@@ -748,7 +703,7 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
                           "¿Desea eliminar el evento?",
                           style: TextStyle(
                             fontSize: 18,
-                            color: Theme.of(context).textTheme.bodyText1!.color,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),

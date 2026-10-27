@@ -1,7 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:klocalizations_flutter/klocalizations_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // ignore: must_be_immutable
 class DialogAddAlertWidget extends StatefulWidget {
@@ -23,12 +23,10 @@ class DialogAddAlertWidget extends StatefulWidget {
 class _DialogAddAlertWidgetState extends State<DialogAddAlertWidget> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: Dialog(
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -40,7 +38,7 @@ class _DialogAddAlertWidgetState extends State<DialogAddAlertWidget> {
                 "Añadir Alerta",
                 style: TextStyle(
                     fontSize: 18,
-                    color: Theme.of(context).textTheme.bodyText1!.color),
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
             ListTile(
@@ -49,7 +47,7 @@ class _DialogAddAlertWidgetState extends State<DialogAddAlertWidget> {
                 "Seleccione el tiempo antes que desea recibir un recordatorio",
                 style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(context).textTheme.bodyText1!.color),
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
             Localizations(
@@ -67,12 +65,9 @@ class _DialogAddAlertWidgetState extends State<DialogAddAlertWidget> {
                           pickerTextStyle: TextStyle(
                               fontSize: 18,
                               color:
-                                  Theme.of(context).textTheme.bodyText1!.color),
+                                  Theme.of(context).colorScheme.onSurface),
                           dateTimePickerTextStyle: TextStyle(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1!
-                                  .color)),
+                              color: Theme.of(context).colorScheme.onSurface)),
                       brightness: Theme.of(context).brightness),
                   child: CupertinoTimerPicker(
                     initialTimerDuration: Duration(),
