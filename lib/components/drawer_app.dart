@@ -57,11 +57,11 @@ class DrawerApp extends StatelessWidget {
             onTap: () {
               //Reinicia el tutorial de cada pantalla
               for (final key in [
-                key_home,
-                key_add_event,
-                key_view_signatures,
-                key_delete_event,
-                key_search_events,
+                keyHome,
+                keyAddEvent,
+                keyViewSignatures,
+                keyDeleteEvent,
+                keySearchEvents,
               ]) {
                 setShowDiscovery(true, key);
               }

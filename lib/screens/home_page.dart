@@ -30,12 +30,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    if (getShowDiscovery(key_home) ?? true) {
+    if (getShowDiscovery(keyHome) ?? true) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => showDiscovery(
           context,
           listId: [kFeatureId1DeleteAllEvents],
-          key: key_home,
+          key: keyHome,
         ),
       );
     }

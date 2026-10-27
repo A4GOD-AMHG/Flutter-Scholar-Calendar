@@ -19,12 +19,12 @@ class _SearchEventsPageState extends State<SearchEventsPage> {
   @override
   void initState() {
     super.initState();
-    if (getShowDiscovery(key_search_events) ?? true) {
+    if (getShowDiscovery(keySearchEvents) ?? true) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => showDiscovery(
           context,
           listId: [kFeatureId8SearchEvents],
-          key: key_search_events,
+          key: keySearchEvents,
         ),
       );
     }

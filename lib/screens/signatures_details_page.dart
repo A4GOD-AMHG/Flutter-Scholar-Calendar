@@ -28,12 +28,12 @@ class _SignaturesDetailsPageState extends State<SignaturesDetailsPage> {
   @override
   void initState() {
     super.initState();
-    if (getShowDiscovery(key_view_signatures) ?? true) {
+    if (getShowDiscovery(keyViewSignatures) ?? true) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => showDiscovery(
           context,
           listId: [kFeatureId3Slidable],
-          key: key_view_signatures,
+          key: keyViewSignatures,
         ),
       );
     }

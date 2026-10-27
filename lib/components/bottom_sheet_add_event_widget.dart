@@ -110,14 +110,14 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
   }
 
   void _showTutorial() {
-    final showAdd = getShowDiscovery(key_add_event) ?? true;
-    final showDelete = getShowDiscovery(key_delete_event) ?? true;
+    final showAdd = getShowDiscovery(keyAddEvent) ?? true;
+    final showDelete = getShowDiscovery(keyDeleteEvent) ?? true;
     if (!showAdd && !showDelete) return;
 
     List<String> listId;
     if (_editing && !showAdd && showDelete) {
       listId = [kFeatureId4DeleteEvent];
-      setShowDiscovery(false, key_delete_event);
+      setShowDiscovery(false, keyDeleteEvent);
     } else if (!_editing && showAdd) {
       listId = [kFeatureId5Color, kFeatureId6Alert, kFeatureId7Switch];
     } else {
@@ -127,10 +127,10 @@ class _BottomSheetAddEventWidgetState extends State<BottomSheetAddEventWidget> {
         kFeatureId6Alert,
         kFeatureId7Switch,
       ];
-      setShowDiscovery(false, key_delete_event);
+      setShowDiscovery(false, keyDeleteEvent);
     }
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => showDiscovery(context, listId: listId, key: key_add_event),
+      (_) => showDiscovery(context, listId: listId, key: keyAddEvent),
     );
   }
 

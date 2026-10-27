@@ -7,20 +7,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///Se utiliza para controlar si un tutorial fue mostrado y no volverlo a mostrar más
 SharedPreferences? preferences;
 
-///[key_home] constante que contiene la clave de la pantalla home
-const String key_home = "home";
+///[keyHome] constante que contiene la clave de la pantalla home
+const String keyHome = "home";
 
-///[key_delete_event] constante que contiene la clave del boton eliminar asignatura
-const String key_delete_event = "delete_event";
+///[keyDeleteEvent] constante que contiene la clave del boton eliminar asignatura
+const String keyDeleteEvent = "delete_event";
 
-///[key_add_event] constante que contiene la clave de la pantalla añadir eventos
-const String key_add_event = "add_event";
+///[keyAddEvent] constante que contiene la clave de la pantalla añadir eventos
+const String keyAddEvent = "add_event";
 
-///[key_view_signatures] constante que contiene la clave de la pantalla ver asignaturas
-const String key_view_signatures = "view_signatures";
+///[keyViewSignatures] constante que contiene la clave de la pantalla ver asignaturas
+const String keyViewSignatures = "view_signatures";
 
-///[key_search_events] constante que contiene la clave de la pantalla buscar eventos
-const String key_search_events = "search_events";
+///[keySearchEvents] constante que contiene la clave de la pantalla buscar eventos
+const String keySearchEvents = "search_events";
 
 ///[initPreferences] función que inicia las preferencias compartidas
 Future initPreferences() async {
@@ -90,9 +90,9 @@ DescribedFeatureOverlay buildWidget(
     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
     targetColor: Theme.of(context).colorScheme.surface,
     textColor: Theme.of(context).colorScheme.onPrimaryContainer,
-    child: child,
     contentLocation: contentLocation,
     barrierDismissible: false,
+    child: child,
   );
 }
 
