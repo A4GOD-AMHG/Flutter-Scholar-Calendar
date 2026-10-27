@@ -1,106 +1,103 @@
+import 'dart:async';
+
+import 'package:feature_discovery/feature_discovery.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:scholar_calendar/api/notification_api.dart';
 import 'package:scholar_calendar/components/bottom_sheet_add_event_widget.dart';
+import 'package:scholar_calendar/components/confirm_dialog.dart';
 import 'package:scholar_calendar/components/drawer_app.dart';
-import 'package:scholar_calendar/components/dropdown_button_event_type.dart';
-import 'package:scholar_calendar/components/dropdown_button_signature.dart';
 import 'package:scholar_calendar/components/floating_action_button_speed_dial.dart';
 import 'package:scholar_calendar/controllers/database_controller.dart';
-import 'package:scholar_calendar/api/notification_api.dart';
-import 'package:scholar_calendar/enums/event_type.dart';
-import 'package:scholar_calendar/models/alarm.dart';
-import 'package:scholar_calendar/models/event.dart';
-import 'package:scholar_calendar/models/signature.dart';
-import 'package:scholar_calendar/screens/search_events_page.dart';
 import 'package:scholar_calendar/utils/features_discoveries.dart';
+import 'package:scholar_calendar/utils/messages.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:get/get.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late CalendarController _calendarController;
-  late final List<Appointment> _appointments;
-  late BuildContext cont;
-  final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
+  final CalendarController _calendarController = CalendarController();
+  final List<Appointment> _appointments = [];
   bool hasEvents = false;
+  StreamSubscription<String?>? _notificationSubscription;
 
   @override
   void initState() {
-    if (getShowDiscovery(key_home) ?? true) {
-      WidgetsBinding.instance.addPostFrameCallback((Duration duration) =>
-          showDiscovery(cont,
-              listId: [kFeatureId1DeleteAllEvents], key: key_home));
-    }
     super.initState();
+    if (getShowDiscovery(key_home) ?? true) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => showDiscovery(
+          context,
+          listId: [kFeatureId1DeleteAllEvents],
+          key: key_home,
+        ),
+      );
+    }
     loadState();
-    _appointments = [];
-    _calendarController = CalendarController();
-
-    NotificationApi.init();
     listenNotifications();
   }
 
-  void listenNotifications() =>
-      NotificationApi.onNotifications.stream.listen(onClickedNotification);
+  void listenNotifications() => _notificationSubscription = NotificationApi
+      .onNotifications
+      .stream
+      .listen(onClickedNotification);
 
   void onClickedNotification(String? payload) {}
 
   void loadState() async {
-    List<Event> events = await databaseController.getEvents();
-    var checkHasEvents = await databaseController.hasEvents();
+    final events = await databaseController.getEvents();
+    final signatures = {
+      for (final s in await databaseController.getSignatures()) s.id: s,
+    };
+    if (!mounted) return;
 
     setState(() {
-      hasEvents = checkHasEvents;
-    });
-
-    events.forEach((event) async {
-      Signature? signature =
-          await databaseController.getSignatureById(event.idSignature!);
-
-      setState(() {
-        _addAppointment(Appointment(
-          id: event.id,
-          startTime: event.startTime,
-          endTime: event.endTime,
-          color: event.color,
-          subject: signature!.symbology,
-          notes: event.startTime.toString(),
-        ));
-      });
+      hasEvents = events.isNotEmpty;
+      for (final event in events) {
+        final signature = signatures[event.idSignature];
+        if (signature == null) continue;
+        _appointments.add(
+          Appointment(
+            id: event.id,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            color: event.color,
+            subject: signature.symbology,
+            notes: event.startTime.toString(),
+          ),
+        );
+      }
     });
   }
 
   @override
   void dispose() {
+    _notificationSubscription?.cancel();
+    _calendarController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    const iconDelete = Icon(Icons.delete);
-    setState(() {
-      cont = context;
-    });
+    final scheme = Theme.of(context).colorScheme;
+    const iconDelete = Icon(Icons.delete_sweep_outlined);
+    final textStyle = TextStyle(color: scheme.onSurface);
     return Scaffold(
-      key: _scaffoldState,
       appBar: AppBar(
+        title: const Text("Eventos Escolares"),
         actions: [
           buildWidget(
             context,
             child: IconButton(
+              tooltip: "Eliminar todos los eventos",
               icon: iconDelete,
-              onPressed: hasEvents
-                  ? () async {
-                      _showDialogDeleteAllEvents(context);
-                    }
-                  : null,
+              onPressed: hasEvents ? _showDialogDeleteAllEvents : null,
             ),
             featureId: kFeatureId1DeleteAllEvents,
             tapTarget: iconDelete,
@@ -109,79 +106,64 @@ class _MyHomePageState extends State<MyHomePage> {
             description: "Pulse aquí si desea eliminar todos los eventos",
           ),
         ],
-        title: const Text(
-          "Eventos Escolares",
-          style: TextStyle(fontSize: 18),
-        ),
       ),
-      drawer: DrawerApp(),
+      drawer: const DrawerApp(),
       body: SfCalendar(
         monthViewSettings: MonthViewSettings(
           agendaStyle: AgendaStyle(
-            dateTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              locale: Locale('es_ES'),
-            ),
-            dayTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              locale: Locale('es_ES'),
-            ),
+            backgroundColor: scheme.surfaceContainerLow,
+            dateTextStyle: textStyle,
+            dayTextStyle: textStyle,
           ),
           showAgenda: true,
           showTrailingAndLeadingDates: true,
           appointmentDisplayCount: 10,
           monthCellStyle: MonthCellStyle(
-            leadingDatesTextStyle: TextStyle(
-              color: Colors.grey[600],
-              locale: Locale('es_ES'),
-            ),
-            textStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              locale: Locale('es_ES'),
-            ),
+            leadingDatesTextStyle: TextStyle(color: scheme.outline),
+            trailingDatesTextStyle: TextStyle(color: scheme.outline),
+            textStyle: textStyle,
           ),
         ),
         scheduleViewSettings: ScheduleViewSettings(
-          monthHeaderSettings: MonthHeaderSettings(
-            monthTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              locale: Locale('es_ES'),
-            ),
-          ),
+          monthHeaderSettings: MonthHeaderSettings(monthTextStyle: textStyle),
           weekHeaderSettings: WeekHeaderSettings(
-            backgroundColor: Colors.black26,
-            weekTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              locale: Locale('es_ES'),
-            ),
+            backgroundColor: scheme.surfaceContainer,
+            weekTextStyle: textStyle,
           ),
         ),
         allowDragAndDrop: true,
-        onDragEnd: _onDragEnd,
-        viewHeaderStyle: ViewHeaderStyle(
-          dateTextStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            locale: Locale('es_ES'),
-          ),
-          dayTextStyle:
-              TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        onDragEnd: (details) => _moveEvent(
+          details.appointment as Appointment,
+          details.droppingTime,
         ),
-        todayHighlightColor: Theme.of(context).primaryColor.withBlue(170),
-        cellBorderColor: Color(0xFF373739),
+        onAppointmentResizeEnd: (details) => _moveEvent(
+          details.appointment as Appointment,
+          details.startTime,
+          details.endTime,
+        ),
+        viewHeaderStyle: ViewHeaderStyle(
+          backgroundColor: scheme.surfaceContainerLow,
+          dateTextStyle: textStyle,
+          dayTextStyle: textStyle,
+        ),
+        todayHighlightColor: scheme.primary,
+        todayTextStyle: TextStyle(color: scheme.onPrimary),
+        cellBorderColor: scheme.outlineVariant,
         headerStyle: CalendarHeaderStyle(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+          backgroundColor: scheme.surfaceContainerHigh,
           textStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
+            color: scheme.onSurface,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
         ),
         weekNumberStyle: WeekNumberStyle(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-          textStyle:
-              TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          backgroundColor: scheme.surfaceContainerHigh,
+          textStyle: textStyle,
         ),
         view: CalendarView.week,
         allowViewNavigation: true,
-        allowedViews: <CalendarView>[
+        allowedViews: const <CalendarView>[
           CalendarView.week,
           CalendarView.workWeek,
           CalendarView.month,
@@ -195,215 +177,152 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _calendarController,
         firstDayOfWeek: 1,
         allowAppointmentResize: true,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        timeSlotViewSettings: const TimeSlotViewSettings(
+        backgroundColor: scheme.surface,
+        timeSlotViewSettings: TimeSlotViewSettings(
           endHour: 24,
           timeIntervalHeight: 80,
           timeFormat: 'h:mm a',
           dateFormat: 'd',
           dayFormat: 'EEE',
-          timeTextStyle: TextStyle(
-            color: Color(0xFF666666),
-            fontSize: 12,
-          ),
-          timeRulerSize: 80,
+          timeTextStyle: TextStyle(color: scheme.outline, fontSize: 12),
+          timeRulerSize: 70,
         ),
-        todayTextStyle: TextStyle(color: Theme.of(context).colorScheme.surface),
       ),
-      floatingActionButton: FloatingActionButtonSpeedDial(),
+      floatingActionButton: const FloatingActionButtonSpeedDial(),
     );
   }
 
-  void _showDialogDeleteAllEvents(BuildContext context) async {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) => Dialog(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              child: Stack(
+  void _showDialogDeleteAllEvents() {
+    showConfirmDialog(
+      context,
+      title: "¿Desea eliminar todos los eventos?",
+      note: "Nota: Al eliminar todos los eventos todas las alarmas serán eliminadas",
+      onConfirm: () async {
+        await databaseController.deleteAllEvents();
+        NotificationApi.cancelAll();
+        showSuccess("Eventos eliminados satisfactoriamente");
+        Get.offAll(() => const MyHomePage());
+      },
+    );
+  }
+
+  ///[_moveEvent] guarda en la base de datos un evento arrastrado o redimensionado
+  ///y reprograma sus alarmas.
+  Future<void> _moveEvent(
+    Appointment appointment,
+    DateTime? startTime, [
+    DateTime? endTime,
+  ]) async {
+    if (startTime == null) return;
+    final event = await databaseController.getEventById(appointment.id as int);
+    if (event == null) return;
+    final isUpdated = await databaseController.updateEventStartTimeById(
+      event: event,
+      startTime: startTime,
+      endTime: endTime,
+    );
+    final alarm = await databaseController.getAlarmById(event.idAlarm!);
+    final updated = await databaseController.getEventById(event.id!);
+    if (updated != null && alarm != null) {
+      await NotificationApi.scheduleEvent(updated, alarm);
+    }
+    if (isUpdated) showSuccess("Evento modificado satisfactoriamente");
+  }
+
+  Future<void> _openEvent(Appointment appointment) async {
+    final event = await databaseController.getEventById(appointment.id as int);
+    if (event == null) return;
+    final signature = await databaseController.getSignatureById(
+      event.idSignature!,
+    );
+    final alarm = await databaseController.getAlarmById(event.idAlarm!);
+    if (!mounted) return;
+    showEventSheet(
+      context,
+      event: event,
+      alarm: alarm,
+      signatureName: signature?.name,
+    );
+  }
+
+  ///[_onColor] color de texto legible sobre el color del evento
+  static Color _onColor(Color color) =>
+      ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+      ? Colors.white
+      : Colors.black87;
+
+  Widget _appointmentBuilder(
+    BuildContext context,
+    CalendarAppointmentDetails calendarAppointmentDetails,
+  ) {
+    final bounds = calendarAppointmentDetails.bounds;
+    if (calendarAppointmentDetails.isMoreAppointmentRegion) {
+      final scheme = Theme.of(context).colorScheme;
+      return Container(
+        width: bounds.width,
+        height: bounds.height,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: scheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          '+ más',
+          style: TextStyle(color: scheme.onSecondaryContainer, fontSize: 10),
+        ),
+      );
+    }
+
+    final Appointment appointment =
+        calendarAppointmentDetails.appointments.first;
+    final onColor = _onColor(appointment.color);
+    final decoration = BoxDecoration(
+      color: appointment.color,
+      borderRadius: BorderRadius.circular(6),
+    );
+
+    if (_calendarController.view == CalendarView.month) {
+      final style = TextStyle(color: onColor, fontSize: 10);
+      return Container(
+        decoration: decoration,
+        alignment: Alignment.center,
+        child: appointment.isAllDay
+            ? Text(appointment.subject, style: style)
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Container(
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: [
-                            Text(
-                              "¿Desea eliminar todos los eventos?",
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  color: Theme.of(context).colorScheme.onSurface),
-                            ),
-                            ListTile(
-                              leading: Icon(
-                                Icons.warning_amber_outlined,
-                              ),
-                              title: Text(
-                                "Nota: Al eliminar todos los eventos todas las alarmas serán eliminadas",
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onSurface),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                              onPressed: () async {
-                                await databaseController.deleteAllEvents();
-                                NotificationApi.cancelAll();
-                                Get.offAll(() => MyHomePage());
-                              },
-                              child: const Text(
-                                "Aceptar",
-                                style: TextStyle(fontSize: 18),
-                              )),
-                          TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                "Cancelar",
-                                style: TextStyle(fontSize: 18),
-                              ))
-                        ],
-                        mainAxisSize: MainAxisSize.min,
-                      )
-                    ],
-                  )
+                  Text(
+                    appointment.subject,
+                    style: style.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${DateFormat('hh:mm a').format(appointment.startTime)} - '
+                    '${DateFormat('hh:mm a').format(appointment.endTime)}',
+                    style: style,
+                  ),
                 ],
               ),
-            ));
-  }
-
-  void _onDragEnd(appointmentDragEndDetails) async {
-    Appointment appointment =
-        appointmentDragEndDetails.appointment as Appointment;
-    Event? event = await databaseController.getEventById(appointment.id as int);
-    NotificationApi.cancel(event!.idAlarm!);
-    NotificationApi.cancel((event.idAlarm! * -1) - 1);
-    Alarm? alarm = await databaseController.getAlarmById(event.idAlarm!);
-    bool isUpdated = await databaseController.updateEventStartTimeById(
-        event: event, startTime: appointmentDragEndDetails.droppingTime!);
-    if (appointmentDragEndDetails.droppingTime!.isAfter(DateTime.now())) {
-      await NotificationApi.showScheduledNotification(
-        id: event.idAlarm!,
-        title: event.name,
-        body: alarm!.description!,
-        payload: event.name,
-        scheduledDate: appointmentDragEndDetails.droppingTime!,
-        
       );
     }
-    if (isUpdated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.green,
-          content: Text("Evento modificado satisfactoriamente"),
-        ),
-      );
-    }
-  }
 
-  Widget _appointmentBuilder(BuildContext context,
-      CalendarAppointmentDetails calendarAppointmentDetails) {
-    if (calendarAppointmentDetails.isMoreAppointmentRegion) {
-      return Container(
-        color: Colors.red,
-        width: calendarAppointmentDetails.bounds.width,
-        height: calendarAppointmentDetails.bounds.height,
-        child: const Text('+More'),
-      );
-    } else if (_calendarController.view == CalendarView.month) {
-      final Appointment appointment =
-          calendarAppointmentDetails.appointments.first;
-      return Container(
-          decoration: BoxDecoration(
-            color: appointment.color,
-            shape: BoxShape.rectangle,
-            borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+    return GestureDetector(
+      onTap: () => _openEvent(appointment),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: decoration,
+        width: bounds.width,
+        height: bounds.height,
+        child: Text(
+          (appointment.notes != null) ? appointment.subject : " ",
+          style: TextStyle(
+            color: onColor,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
-          alignment: Alignment.center,
-          child: appointment.isAllDay
-              ? Text(
-                  appointment.subject,
-                  textAlign: TextAlign.left,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                  ),
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(appointment.subject,
-                        textAlign: TextAlign.left,
-                        style:
-                            const TextStyle(color: Colors.black, fontSize: 10)),
-                    Text(
-                        '${DateFormat('hh:mm a').format(appointment.startTime)} - ' +
-                            DateFormat('hh:mm a').format(appointment.endTime),
-                        textAlign: TextAlign.left,
-                        style:
-                            const TextStyle(color: Colors.black, fontSize: 10))
-                  ],
-                ));
-    } else {
-      final Appointment appointment =
-          calendarAppointmentDetails.appointments.first;
-      return GestureDetector(
-        onTap: () async {
-          Event? event =
-              await databaseController.getEventById(appointment.id as int);
-          Signature? signature =
-              await databaseController.getSignatureById(event!.idSignature!);
-          Alarm? alarm = await databaseController.getAlarmById(event.id!);
-          DropdownButtonEventTypeWidget.value = event.eventType.asString;
-          DropdownButtonSignatureWidget.value = signature!.name;
-
-          showModalBottomSheet(
-            isScrollControlled: true,
-            enableDrag: true,
-            builder: (context) => BottomSheetAddEventWidget(
-              event: event,
-              textAlarmDescription: alarm!.description,
-            ),
-            transitionAnimationController: AnimationController(
-              vsync: AnimatedListState(),
-              duration: const Duration(milliseconds: 1000),
-            ),
-            context: context,
-            elevation: 40,
-          );
-        },
-        child: Container(
-          alignment: Alignment.center,
-          color: appointment.color,
-          width: calendarAppointmentDetails.bounds.width,
-          height: calendarAppointmentDetails.bounds.height,
-          child: Text(
-            (appointment.notes != null) ? appointment.subject : " ",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 12,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          textAlign: TextAlign.center,
         ),
-      );
-    }
-  }
-
-  void _addAppointment(Appointment appointment) {
-    _appointments.add(appointment);
+      ),
+    );
   }
 }
 

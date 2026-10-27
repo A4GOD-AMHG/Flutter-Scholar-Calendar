@@ -73,21 +73,23 @@ const kFeatureId8SearchEvents = 'feature_8SearchEvents';
 ///[description] descripción del tutorial(Opcional)
 ///
 ///[contentLocation] localización del contenido del tutorial
-DescribedFeatureOverlay buildWidget(BuildContext context,
-    {required String featureId,
-    required Widget tapTarget,
-    required Widget child,
-    String title = "",
-    String description = "",
-    required ContentLocation contentLocation}) {
+DescribedFeatureOverlay buildWidget(
+  BuildContext context, {
+  required String featureId,
+  required Widget tapTarget,
+  required Widget child,
+  String title = "",
+  String description = "",
+  required ContentLocation contentLocation,
+}) {
   return DescribedFeatureOverlay(
     featureId: featureId,
     tapTarget: tapTarget,
     title: Text(title),
     description: Text(description),
-    backgroundColor: Theme.of(context).primaryColor,
+    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
     targetColor: Theme.of(context).colorScheme.surface,
-    textColor: Theme.of(context).colorScheme.onSurface,
+    textColor: Theme.of(context).colorScheme.onPrimaryContainer,
     child: child,
     contentLocation: contentLocation,
     barrierDismissible: false,
@@ -101,15 +103,13 @@ DescribedFeatureOverlay buildWidget(BuildContext context,
 ///[listId] lista de todos los id de los elementos que se van a mostrar en el tutorial
 ///
 ///[key] clave de la pantalla en la que se va a mostrar el tutorial
-Future<void> showDiscovery(BuildContext context,
-    {required List<String> listId, required String key}) async {
-  await FeatureDiscovery.clearPreferences(
-    context,
-    listId,
-  );
-  FeatureDiscovery.discoverFeatures(
-    context,
-    listId,
-  );
+Future<void> showDiscovery(
+  BuildContext context, {
+  required List<String> listId,
+  required String key,
+}) async {
+  await FeatureDiscovery.clearPreferences(context, listId);
+  if (!context.mounted) return;
+  FeatureDiscovery.discoverFeatures(context, listId);
   setShowDiscovery(false, key);
 }

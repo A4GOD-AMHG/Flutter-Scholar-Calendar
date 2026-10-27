@@ -2,52 +2,48 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scholar_calendar/components/bottom_sheet_add_event_widget.dart';
-import 'package:scholar_calendar/components/dropdown_button_event_type.dart';
-import 'package:scholar_calendar/components/dropdown_button_signature.dart';
+import 'package:scholar_calendar/components/empty_state.dart';
 import 'package:scholar_calendar/controllers/database_controller.dart';
-import 'package:scholar_calendar/enums/event_type.dart';
-import 'package:scholar_calendar/models/alarm.dart';
 import 'package:scholar_calendar/models/event.dart';
 import 'package:scholar_calendar/models/signature.dart';
 import 'package:scholar_calendar/utils/features_discoveries.dart';
 
 class SearchEventsPage extends StatefulWidget {
-  SearchEventsPage({Key? key}) : super(key: key);
+  const SearchEventsPage({super.key});
 
   @override
   State<SearchEventsPage> createState() => _SearchEventsPageState();
 }
 
 class _SearchEventsPageState extends State<SearchEventsPage> {
-  late BuildContext cont;
   @override
   void initState() {
-    if (getShowDiscovery(key_search_events) ?? true) {
-      WidgetsBinding.instance.addPostFrameCallback((Duration duration) =>
-          showDiscovery(cont,
-              listId: [kFeatureId8SearchEvents], key: key_search_events));
-    }
     super.initState();
+    if (getShowDiscovery(key_search_events) ?? true) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => showDiscovery(
+          context,
+          listId: [kFeatureId8SearchEvents],
+          key: key_search_events,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    setState(() {
-      cont = context;
-    });
-
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Buscar Eventos"),
         actions: [
           buildWidget(
             context,
             featureId: kFeatureId8SearchEvents,
-            tapTarget: Icon(Icons.search),
+            tapTarget: const Icon(Icons.search),
             child: IconButton(
-              onPressed: () {
-                _showSearch(context);
-              },
-              icon: Icon(Icons.search),
+              tooltip: "Buscar",
+              onPressed: _showSearch,
+              icon: const Icon(Icons.search),
             ),
             contentLocation: ContentLocation.trivial,
             title: "Buscar Eventos",
@@ -55,16 +51,27 @@ class _SearchEventsPageState extends State<SearchEventsPage> {
           ),
         ],
       ),
+      body: EmptyState(
+        icon: Icons.manage_search_outlined,
+        message: "Busque cualquier evento por su nombre",
+        action: FilledButton.icon(
+          onPressed: _showSearch,
+          icon: const Icon(Icons.search),
+          label: const Text("Buscar"),
+        ),
+      ),
     );
   }
 
-  void _showSearch(BuildContext context) {
+  Future<void> _showSearch() async {
+    final events = await databaseController.getEvents();
+    final signatures = await databaseController.getSignatures();
+    if (!mounted) return;
     showSearch(
       context: context,
       delegate: CustomSearchDelegate(
-        context,
-        searchFieldStyle:
-            TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        events: events,
+        signatures: {for (final s in signatures) s.id!: s},
       ),
     );
   }
@@ -74,42 +81,38 @@ class _SearchEventsPageState extends State<SearchEventsPage> {
 ///
 ///[events] lista de todos los eventos
 ///
-///[signatures] lista de todas las asignaturas
+///[signatures] asignaturas indexadas por id
 class CustomSearchDelegate extends SearchDelegate {
-  List<Event> events = [];
-  List<Signature> signatures = [];
+  final List<Event> events;
+  final Map<int, Signature> signatures;
 
-  BuildContext context;
+  CustomSearchDelegate({required this.events, required this.signatures})
+    : super(searchFieldLabel: "Nombre del evento");
+
   @override
-  TextStyle? searchFieldStyle;
-
-  CustomSearchDelegate(
-    this.context, {
-    this.searchFieldStyle,
-  }) {
-    getEvents();
-    getSignatures();
-  }
-
-  ///[getEvents] método para cargar los eventos de la base de datos
-  void getEvents() async {
-    events = await databaseController.getEvents();
-  }
-
-  ///[getSignatures] método para cargar las asignaturas de la base de datos
-  void getSignatures() async {
-    signatures = await databaseController.getSignatures();
+  ThemeData appBarTheme(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.copyWith(
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: theme.colorScheme.surfaceContainerHigh,
+        foregroundColor: theme.colorScheme.onSurface,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        filled: false,
+        border: InputBorder.none,
+      ),
+    );
   }
 
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      IconButton(
-        onPressed: () {
-          query = '';
-        },
-        icon: const Icon(Icons.clear),
-      )
+      if (query.isNotEmpty)
+        IconButton(
+          tooltip: "Limpiar",
+          onPressed: () => query = '',
+          icon: const Icon(Icons.clear),
+        ),
     ];
   }
 
@@ -119,215 +122,127 @@ class CustomSearchDelegate extends SearchDelegate {
   @override
   Widget? buildLeading(BuildContext context) {
     return IconButton(
-      onPressed: () {
-        close(context, null);
-      },
+      onPressed: () => close(context, null),
       icon: const Icon(Icons.arrow_back),
     );
   }
 
   @override
-  Widget buildResults(BuildContext context) {
-    List<Event> eventQuery = [];
-    for (var event in events) {
-      if (event.name.toLowerCase().contains(query.toLowerCase())) {
-        eventQuery.add(event);
-      }
-    }
-    if (eventQuery.isEmpty) {
-      return Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            "No se han encontrado resultados.",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ));
-    }
-    return ListView.builder(
-      itemCount: eventQuery.length,
-      itemBuilder: (context, indexEvent) {
-        var event = eventQuery[indexEvent];
-        int indexSignature = signatures
-            .indexWhere((signature) => signature.id == event.idSignature);
-        var currentStartTime = DateTime(
-            event.startTime.year, event.startTime.month, event.startTime.day);
-        var lastStartTime;
-        if (indexEvent != 0) {
-          lastStartTime = DateTime(
-              eventQuery[indexEvent - 1].startTime.year,
-              eventQuery[indexEvent - 1].startTime.month,
-              eventQuery[indexEvent - 1].startTime.day);
-        }
-        var signature = signatures[indexSignature];
-        String textDate =
-            DateFormat('EEEE, d ', 'es_ES').format(currentStartTime) +
-                "de" +
-                DateFormat(' MMMM ', 'es_ES').format(currentStartTime) +
-                "del" +
-                DateFormat(' y', 'es_ES').format(currentStartTime);
-        if (currentStartTime.isAtSameMomentAs(DateTime(
-                DateTime.now().year, DateTime.now().month, DateTime.now().day)
-            .subtract(Duration(days: 1)))) {
-          textDate = "Ayer";
-        } else if (currentStartTime.isAtSameMomentAs(DateTime(
-            DateTime.now().year, DateTime.now().month, DateTime.now().day))) {
-          textDate = "Hoy";
-        } else if (currentStartTime.isAtSameMomentAs(DateTime(
-                DateTime.now().year, DateTime.now().month, DateTime.now().day)
-            .add(Duration(days: 1)))) {
-          textDate = "Mañana";
-        }
-        return ((indexEvent == 0)
-                ? true
-                : (!currentStartTime.isAtSameMomentAs(lastStartTime)))
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15, top: 20),
-                    child: Text(
-                      textDate,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Theme.of(context).colorScheme.onSurface),
-                    ),
-                  ),
-                  _buildListTile(context, signature, event),
-                ],
-              )
-            : _buildListTile(context, signature, event);
-      },
-    );
-  }
+  Widget buildResults(BuildContext context) => _buildList(context);
 
   @override
-  Widget buildSuggestions(BuildContext context) {
-    List<Event> eventQuery = [];
-    for (var event in events) {
-      if (event.name.toLowerCase().contains(query.toLowerCase())) {
-        eventQuery.add(event);
-      }
+  Widget buildSuggestions(BuildContext context) => _buildList(context);
+
+  ///[_dayLabel] "Hoy", "Ayer", "Mañana" o la fecha completa en español
+  static String _dayLabel(DateTime day) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    switch (day.difference(today).inDays) {
+      case -1:
+        return "Ayer";
+      case 0:
+        return "Hoy";
+      case 1:
+        return "Mañana";
     }
-    if (eventQuery.isEmpty) {
-      return Center(
-        child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              "No se han encontrado resultados.",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            )),
+    return "${DateFormat('EEEE, d', 'es_ES').format(day)} de "
+        "${DateFormat('MMMM', 'es_ES').format(day)} del "
+        "${DateFormat('y', 'es_ES').format(day)}";
+  }
+
+  Widget _buildList(BuildContext context) {
+    final lowerQuery = query.toLowerCase();
+    // solo eventos cuya asignatura existe, para no romper la lista
+    final results = events
+        .where(
+          (event) =>
+              signatures.containsKey(event.idSignature) &&
+              event.name.toLowerCase().contains(lowerQuery),
+        )
+        .toList();
+    if (results.isEmpty) {
+      return const EmptyState(
+        icon: Icons.search_off_outlined,
+        message: "No se han encontrado resultados.",
       );
     }
+    final theme = Theme.of(context);
     return ListView.builder(
-      itemCount: eventQuery.length,
-      itemBuilder: (context, indexEvent) {
-        var event = eventQuery[indexEvent];
-        int indexSignature = signatures
-            .indexWhere((signature) => signature.id == event.idSignature);
-        if (indexSignature < 0) return Text("");
-        var currentStartTime = DateTime(
-            event.startTime.year, event.startTime.month, event.startTime.day);
-        var lastStartTime;
-        if (indexEvent != 0) {
-          lastStartTime = DateTime(
-              eventQuery[indexEvent - 1].startTime.year,
-              eventQuery[indexEvent - 1].startTime.month,
-              eventQuery[indexEvent - 1].startTime.day);
-        }
-        var signature = signatures[indexSignature];
-        String textDate =
-            DateFormat('EEEE, d ', 'es_ES').format(currentStartTime) +
-                "de" +
-                DateFormat(' MMMM ', 'es_ES').format(currentStartTime) +
-                "del" +
-                DateFormat(' y', 'es_ES').format(currentStartTime);
-        if (currentStartTime.isAtSameMomentAs(DateTime(
-                DateTime.now().year, DateTime.now().month, DateTime.now().day)
-            .subtract(Duration(days: 1)))) {
-          textDate = "Ayer";
-        } else if (currentStartTime.isAtSameMomentAs(DateTime(
-            DateTime.now().year, DateTime.now().month, DateTime.now().day))) {
-          textDate = "Hoy";
-        } else if (currentStartTime.isAtSameMomentAs(DateTime(
-                DateTime.now().year, DateTime.now().month, DateTime.now().day)
-            .add(Duration(days: 1)))) {
-          textDate = "Mañana";
-        }
-        return ((indexEvent == 0)
-                ? true
-                : (!currentStartTime.isAtSameMomentAs(lastStartTime)))
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15, top: 20),
-                    child: Text(
-                      textDate,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Theme.of(context).colorScheme.onSurface),
-                    ),
-                  ),
-                  _buildListTile(context, signature, event)
-                ],
-              )
-            : _buildListTile(context, signature, event);
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final event = results[index];
+        final signature = signatures[event.idSignature]!;
+        final day = DateUtils.dateOnly(event.startTime);
+        final isNewDay =
+            index == 0 ||
+            !DateUtils.isSameDay(results[index - 1].startTime, day);
+        final tile = _buildListTile(context, signature, event);
+        if (!isNewDay) return tile;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+              child: Text(
+                _dayLabel(day),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            tile,
+          ],
+        );
       },
     );
   }
 
-  ListTile _buildListTile(
-      BuildContext context, Signature signature, Event event) {
-    return ListTile(
-      onTap: () {
-        _showEvent(event, signature);
-      },
-      leading: Icon(
-        Icons.circle,
-        color: event.color,
-      ),
-      title: Text(
-        event.name,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface,
+  Widget _buildListTile(
+    BuildContext context,
+    Signature signature,
+    Event event,
+  ) {
+    final time = DateFormat('hh:mm a', 'es_ES');
+    return Card(
+      child: ListTile(
+        onTap: () => _showEvent(context, event, signature),
+        leading: CircleAvatar(
+          backgroundColor: event.color,
+          foregroundColor:
+              ThemeData.estimateBrightnessForColor(event.color) ==
+                  Brightness.dark
+              ? Colors.white
+              : Colors.black87,
+          child: Text(
+            signature.symbology,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      subtitle: Text(
-        signature.name +
-            '\n' +
-            DateFormat('hh:mm a', 'es_ES').format(event.startTime) +
-            " - " +
-            DateFormat('hh:mm a', 'es_ES').format(event.endTime),
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface,
+        title: Text(event.name),
+        subtitle: Text(
+          "${signature.name}\n${time.format(event.startTime)} - ${time.format(event.endTime)}",
         ),
+        isThreeLine: true,
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
 
-  void _showEvent(Event event, Signature signature) async {
-    Alarm? alarm = await databaseController.getAlarmById(event.id!);
-    DropdownButtonEventTypeWidget.value = event.eventType.asString;
-    DropdownButtonSignatureWidget.value = signature.name;
-
-    showModalBottomSheet(
-      isScrollControlled: true,
-      enableDrag: true,
-      builder: (context) => BottomSheetAddEventWidget(
-        event: event,
-        textAlarmDescription: alarm!.description,
-      ),
-      transitionAnimationController: AnimationController(
-        vsync: AnimatedListState(),
-        duration: const Duration(milliseconds: 1000),
-      ),
-      context: context,
-      elevation: 40,
+  void _showEvent(
+    BuildContext context,
+    Event event,
+    Signature signature,
+  ) async {
+    final alarm = await databaseController.getAlarmById(event.idAlarm!);
+    if (!context.mounted) return;
+    showEventSheet(
+      context,
+      event: event,
+      alarm: alarm,
+      signatureName: signature.name,
     );
   }
 }
