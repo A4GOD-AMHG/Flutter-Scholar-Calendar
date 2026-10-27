@@ -5,9 +5,9 @@ import 'package:scholar_calendar/models/signature.dart';
 
 ///[_DatabaseController] clase que controla la base de datos
 class _DatabaseController {
-  ///[init] método que crea la base de datos
-  void init() {
-    DatabaseProvider.db.createDatabase();
+  ///[init] método que abre (o crea) la base de datos
+  Future<void> init() async {
+    await DatabaseProvider.db.database;
   }
 
   ///[getSignatures] método que retorna una lista de las asignaturas
@@ -57,12 +57,16 @@ class _DatabaseController {
   ///[idSignature] id de la asignatura relacionada con el evento
   ///
   ///[alarm] alarma del evento
-  Future<Event> insertEvent(
-      {required Event event,
-      required int idSignature,
-      required Alarm alarm}) async {
-    return DatabaseProvider.db
-        .insertEvent(event: event, idSignature: idSignature, alarm: alarm);
+  Future<Event> insertEvent({
+    required Event event,
+    required int idSignature,
+    required Alarm alarm,
+  }) async {
+    return DatabaseProvider.db.insertEvent(
+      event: event,
+      idSignature: idSignature,
+      alarm: alarm,
+    );
   }
 
   ///[updateEvent] método para actualizar los datos de un evento
@@ -71,15 +75,19 @@ class _DatabaseController {
   ///
   ///[idSignature] asignatura relacionada con el evento
   ///
-  ///[description] descripción de la alarma del evento
+  ///[alarm] alarma del evento (descripción y hora)
   ///
   ///retorna [true] si se actualiza con éxito, y [false] si no
-  Future<bool> updateEvent(
-      {required Event event,
-      required int idSignature,
-      required String? description}) async {
+  Future<bool> updateEvent({
+    required Event event,
+    required int idSignature,
+    required Alarm alarm,
+  }) async {
     return DatabaseProvider.db.updateEvent(
-        event: event, idSignature: idSignature, description: description);
+      event: event,
+      idSignature: idSignature,
+      alarm: alarm,
+    );
   }
 
   ///[updateEventStartTimeById] método para actualizar la fecha de inicio de un evento
@@ -89,10 +97,16 @@ class _DatabaseController {
   ///[startTime] fecha actualizada del evento
   ///
   ///retorna [true] si se actualiza con éxito, y [false] si no
-  Future<bool> updateEventStartTimeById(
-      {required Event event, required DateTime startTime}) async {
-    return DatabaseProvider.db
-        .updateEventStartTimeById(event: event, startTime: startTime);
+  Future<bool> updateEventStartTimeById({
+    required Event event,
+    required DateTime startTime,
+    DateTime? endTime,
+  }) async {
+    return DatabaseProvider.db.updateEventStartTimeById(
+      event: event,
+      startTime: startTime,
+      endTime: endTime,
+    );
   }
 
   ///[insertSignature] método para insertar una asignatura en la tabla Signature

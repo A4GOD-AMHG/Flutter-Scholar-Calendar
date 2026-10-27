@@ -13,10 +13,7 @@ class Alarm {
 
   ///[toMap]  método para convertir la alarma en un [Map]
   Map<String, dynamic> toMap() {
-    return {
-      'description': description,
-      'time': time.toString(),
-    };
+    return {'description': description, 'time': time.toString()};
   }
 
   ///[Alarm.fromMap] constructor nombrado para crear una alarma pasándole el parámetro [map]

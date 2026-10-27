@@ -13,10 +13,7 @@ class Signature {
 
   ///[toMap]  método para convertir la asignatura en un [Map]
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'symbology': symbology,
-    };
+    return {'name': name, 'symbology': symbology};
   }
 
   ///[Signature.fromMap] constructor nombrado para crear una asignatura pasándole el parámetro [map]
