@@ -1,130 +1,90 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:scholar_calendar/app.dart';
 import 'package:scholar_calendar/screens/home_page.dart';
 import 'package:scholar_calendar/screens/search_events_page.dart';
 import 'package:scholar_calendar/screens/signatures_details_page.dart';
 import 'package:scholar_calendar/utils/features_discoveries.dart';
 
 class DrawerApp extends StatelessWidget {
-  const DrawerApp({Key? key}) : super(key: key);
+  const DrawerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Drawer(
-      child: Column(
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            child: ListTile(
-              title: Text(""),
-            ),
-            decoration: BoxDecoration(
+            margin: EdgeInsets.zero,
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
               image: DecorationImage(
-                  image: AssetImage('assets/images/drawer_header.jpg'),
-                  fit: BoxFit.cover),
+                image: AssetImage('assets/images/drawer_header.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                appName,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  shadows: const [Shadow(blurRadius: 8)],
+                ),
+              ),
             ),
           ),
+          const SizedBox(height: 8),
           ListTile(
-            title: const Text(
-              "Ver Asignaturas",
-              style: TextStyle(fontSize: 18),
-            ),
-            leading: const Icon(
-              Icons.class_outlined,
-            ),
-            onTap: () {
-              Get.offAll(() => SignaturesDetailsPage());
-            },
+            leading: const Icon(Icons.class_outlined),
+            title: const Text("Ver Asignaturas"),
+            onTap: () => Get.offAll(() => const SignaturesDetailsPage()),
           ),
           ListTile(
-            title: const Text(
-              "Buscar Eventos",
-              style: TextStyle(fontSize: 18),
-            ),
             leading: const Icon(Icons.search_outlined),
+            title: const Text("Buscar Eventos"),
             onTap: () {
               Navigator.pop(context);
-              Get.to(() => SearchEventsPage());
+              Get.to(() => const SearchEventsPage());
             },
           ),
           ListTile(
-            title: const Text(
-              "Reiniciar tutoriales",
-              style: TextStyle(fontSize: 18),
-            ),
-            leading: const Icon(
-              Icons.help_outline_outlined,
-            ),
+            leading: const Icon(Icons.help_outline_outlined),
+            title: const Text("Reiniciar tutoriales"),
             onTap: () {
               //Reinicia el tutorial de cada pantalla
-              setShowDiscovery(true, key_home);
-              setShowDiscovery(true, key_add_event);
-              setShowDiscovery(true, key_view_signatures);
-              setShowDiscovery(true, key_delete_event);
-              setShowDiscovery(true, key_search_events);
-              Get.offAll(() => MyHomePage());
+              for (final key in [
+                key_home,
+                key_add_event,
+                key_view_signatures,
+                key_delete_event,
+                key_search_events,
+              ]) {
+                setShowDiscovery(true, key);
+              }
+              Get.offAll(() => const MyHomePage());
             },
           ),
+          const Divider(indent: 16, endIndent: 16),
           AboutListTile(
-            applicationName: "Eventos Escolares",
-            applicationVersion: "1.0.0",
-            applicationIcon: Image.asset(
-              "assets/images/icon.png",
-              scale: 2,
-            ),
+            icon: const Icon(Icons.info_outline),
+            applicationName: appName,
+            applicationVersion: appVersion,
+            applicationIcon: Image.asset("assets/images/icon.png", width: 48),
             aboutBoxChildren: [
-              Text.rich(
-                TextSpan(
-                  children: [
-                    WidgetSpan(
-                        child: Text(
-                      "Autores:",
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-                    )),
-                    WidgetSpan(
-                      child: Text(
-                        "Leonardo Alain Moreira Rodríguez\nAlexis Manuel Hurtado García",
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
+              const SizedBox(height: 8),
+              Text("Autores:", style: theme.textTheme.titleMedium),
+              const Text(
+                "Leonardo Alain Moreira Rodríguez\nAlexis Manuel Hurtado García",
               ),
-              SizedBox(
-                height: 15,
-              ),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    WidgetSpan(
-                        child: Text(
-                      "Tutor:",
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-                    )),
-                    WidgetSpan(
-                      child: Text(
-                        "Ing. Alfredo Rafael Espinosa Palenque",
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
+              const SizedBox(height: 12),
+              Text("Tutor:", style: theme.textTheme.titleMedium),
+              const Text("Ing. Alfredo Rafael Espinosa Palenque"),
             ],
-            icon: const Icon(
-              Icons.info_outline,
-            ),
-            child: const Text(
-              "Sobre Eventos Escolares",
-              style: TextStyle(fontSize: 18),
-            ),
+            child: const Text("Sobre $appName"),
           ),
         ],
       ),

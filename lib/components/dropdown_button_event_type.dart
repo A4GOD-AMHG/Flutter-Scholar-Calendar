@@ -1,61 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:scholar_calendar/enums/event_type.dart';
 
-class DropdownButtonEventTypeWidget extends StatefulWidget {
-  static String? value;
+///[DropdownButtonEventTypeWidget] selector controlado del tipo de evento
+class DropdownButtonEventTypeWidget extends StatelessWidget {
+  final EventType? value;
+  final ValueChanged<EventType?> onChanged;
 
-  DropdownButtonEventTypeWidget({Key? key}) : super(key: key);
-
-  @override
-  State<DropdownButtonEventTypeWidget> createState() =>
-      _DropdownButtonEventTypeWidgetState();
-}
-
-class _DropdownButtonEventTypeWidgetState
-    extends State<DropdownButtonEventTypeWidget> {
-  EventType? _eventType;
-  @override
-  void initState() {
-    super.initState();
-    if (_eventType != null) {
-      DropdownButtonEventTypeWidget.value = _eventType!.asString;
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    DropdownButtonEventTypeWidget.value = null;
-  }
+  const DropdownButtonEventTypeWidget({
+    required this.value,
+    required this.onChanged,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 15),
-      child: DropdownButton<EventType>(
-        dropdownColor: Theme.of(context).colorScheme.surface,
-        style: TextStyle(
-          fontSize: 18,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-        value: EventTypeModel.fromString(DropdownButtonEventTypeWidget.value),
-        hint: Text(
-          "Tipo de evento",
-          style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).colorScheme.onSurface),
-        ),
-        onChanged: (EventType? value) {
-          setState(() {
-            _eventType = value!;
-            DropdownButtonEventTypeWidget.value = value.asString;
-          });
-        },
-        items: EventType.values.map((EventType eventType) {
-          return DropdownMenuItem<EventType>(
-              value: eventType, child: Text(eventType.asString));
-        }).toList(),
-      ),
+    return DropdownButton<EventType>(
+      value: value,
+      hint: const Text("Tipo de evento"),
+      icon: const Icon(Icons.category_outlined),
+      borderRadius: BorderRadius.circular(12),
+      onChanged: onChanged,
+      items: EventType.values
+          .map(
+            (eventType) => DropdownMenuItem<EventType>(
+              value: eventType,
+              child: Text(eventType.asString),
+            ),
+          )
+          .toList(),
     );
   }
 }

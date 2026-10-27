@@ -4,11 +4,46 @@ import 'package:get/get.dart';
 import 'package:scholar_calendar/components/bottom_sheet_add_event_widget.dart';
 import 'package:scholar_calendar/components/dialog_signature_widget.dart';
 import 'package:scholar_calendar/controllers/database_controller.dart';
-import 'package:scholar_calendar/screens/home_page.dart';
 import 'package:scholar_calendar/screens/signatures_details_page.dart';
 
+///[speedDialChild] opción del [SpeedDial] con el estilo de la app
+SpeedDialChild speedDialChild(
+  BuildContext context, {
+  required IconData icon,
+  required String label,
+  required VoidCallback onTap,
+}) {
+  final scheme = Theme.of(context).colorScheme;
+  return SpeedDialChild(
+    child: Icon(icon),
+    label: label,
+    backgroundColor: scheme.secondaryContainer,
+    foregroundColor: scheme.onSecondaryContainer,
+    labelBackgroundColor: scheme.surfaceContainerHighest,
+    labelStyle: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w500),
+    onTap: onTap,
+  );
+}
+
+///[appSpeedDial] botón flotante desplegable con el estilo de la app
+SpeedDial appSpeedDial(BuildContext context, List<SpeedDialChild> children) {
+  final scheme = Theme.of(context).colorScheme;
+  return SpeedDial(
+    backgroundColor: scheme.primaryContainer,
+    foregroundColor: scheme.onPrimaryContainer,
+    activeBackgroundColor: scheme.error,
+    activeForegroundColor: scheme.onError,
+    overlayColor: Colors.black,
+    overlayOpacity: 0.5,
+    spacing: 5,
+    spaceBetweenChildren: 12,
+    animatedIcon: AnimatedIcons.menu_close,
+    children: children,
+  );
+}
+
 class FloatingActionButtonSpeedDial extends StatefulWidget {
-  FloatingActionButtonSpeedDial({Key? key}) : super(key: key);
+  const FloatingActionButtonSpeedDial({super.key});
 
   @override
   State<FloatingActionButtonSpeedDial> createState() =>
@@ -26,82 +61,35 @@ class _FloatingActionButtonSpeedDialState
   }
 
   void loadState() async {
-    var checkHasSignatures = await databaseController.hasSignatures();
-    setState(() {
-      hasSignatures = checkHasSignatures;
-    });
+    final checkHasSignatures = await databaseController.hasSignatures();
+    if (mounted) setState(() => hasSignatures = checkHasSignatures);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SpeedDial(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        activeBackgroundColor: Colors.red,
-        overlayColor: Theme.of(context).colorScheme.surface,
-        overlayOpacity: 0.5,
-        spacing: 5,
-        spaceBetweenChildren: 15,
-        animatedIcon: AnimatedIcons.menu_close,
-        children: [
-          if (hasSignatures)
-            SpeedDialChild(
-              backgroundColor: Theme.of(context).colorScheme.onSurface,
-              child: Icon(
-                Icons.add_alarm_outlined,
-              ),
-              label: "Añadir Evento",
-              labelStyle: TextStyle(
-                color: Theme.of(context).colorScheme.surface,
-              ),
-              labelBackgroundColor:
-                  Theme.of(context).colorScheme.onSurface,
-              foregroundColor: Theme.of(context).colorScheme.surface,
-              onTap: () => showModalBottomSheet(
-                  isScrollControlled: true,
-                  enableDrag: true,
-                  transitionAnimationController: AnimationController(
-                      vsync: AnimatedListState(),
-                      duration: const Duration(milliseconds: 500)),
-                  elevation: 10,
-                  context: context,
-                  builder: (context) => BottomSheetAddEventWidget()),
-            ),
-          SpeedDialChild(
-            backgroundColor: Theme.of(context).colorScheme.onSurface,
-            child: Icon(
-              Icons.add,
-            ),
-            label: "Agregar Asignatura",
-            labelStyle: TextStyle(
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            labelBackgroundColor: Theme.of(context).colorScheme.onSurface,
-            foregroundColor: Theme.of(context).colorScheme.surface,
-            onTap: _showDialogAddSignature,
-          ),
-          SpeedDialChild(
-            backgroundColor: Theme.of(context).colorScheme.onSurface,
-            child: Icon(
-              Icons.class_outlined,
-            ),
-            label: "Ver Asignaturas",
-            labelStyle: TextStyle(
-              color: Theme.of(context).colorScheme.surface,
-            ),
-            labelBackgroundColor: Theme.of(context).colorScheme.onSurface,
-            foregroundColor: Theme.of(context).colorScheme.surface,
-            onTap: () {
-              Get.offAll(() => SignaturesDetailsPage());
-            },
-          ),
-        ]);
-  }
-
-  void _showDialogAddSignature() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) => DialogSignatureWidget(
-              page: MyHomePage(),
-            ));
+    return appSpeedDial(context, [
+      if (hasSignatures)
+        speedDialChild(
+          context,
+          icon: Icons.add_alarm_outlined,
+          label: "Añadir Evento",
+          onTap: () => showEventSheet(context),
+        ),
+      speedDialChild(
+        context,
+        icon: Icons.add,
+        label: "Agregar Asignatura",
+        onTap: () => showDialog(
+          context: context,
+          builder: (_) => const DialogSignatureWidget(returnToHome: true),
+        ),
+      ),
+      speedDialChild(
+        context,
+        icon: Icons.class_outlined,
+        label: "Ver Asignaturas",
+        onTap: () => Get.offAll(() => const SignaturesDetailsPage()),
+      ),
+    ]);
   }
 }

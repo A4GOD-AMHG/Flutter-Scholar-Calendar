@@ -1,159 +1,108 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
-// ignore: must_be_immutable
+///[DialogAddAlertWidget] diálogo para elegir con cuánta antelación avisar del evento.
+///
+///Devuelve la [Duration] elegida con [Navigator.pop], o `null` si se cancela.
 class DialogAddAlertWidget extends StatefulWidget {
-  DateTime dateTime;
-  static Duration alert = Duration();
-  String errorMessageAlert;
-  VoidCallback? onChange;
-  DialogAddAlertWidget(
-      {required this.dateTime,
-      required this.errorMessageAlert,
-      required this.onChange,
-      Key? key})
-      : super(key: key);
+  final DateTime dateTime;
+  final Duration initialAlert;
+
+  const DialogAddAlertWidget({
+    required this.dateTime,
+    this.initialAlert = Duration.zero,
+    super.key,
+  });
 
   @override
   State<DialogAddAlertWidget> createState() => _DialogAddAlertWidgetState();
 }
 
 class _DialogAddAlertWidgetState extends State<DialogAddAlertWidget> {
+  late Duration _alert = widget.initialAlert;
+  String _error = "";
+
+  String _validate() {
+    if (widget.dateTime.isBefore(
+      DateTime.now().add(const Duration(minutes: 1)),
+    )) {
+      return "Seleccione una fecha correcta para poder añadir una alarma o alerta";
+    }
+    if (widget.dateTime.subtract(_alert).isBefore(DateTime.now())) {
+      return "La alerta no puede ser menor que la hora actual";
+    }
+    return "";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = TextStyle(fontSize: 18, color: theme.colorScheme.onSurface);
     return PopScope(
       canPop: false,
-      child: Dialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        child: Column(
+      child: AlertDialog(
+        icon: const Icon(Icons.alarm_add_outlined),
+        title: const Text("Añadir Alerta"),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Añadir Alerta",
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Theme.of(context).colorScheme.onSurface),
-              ),
+            Text(
+              "Seleccione el tiempo antes que desea recibir un recordatorio",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
             ),
-            ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text(
-                "Seleccione el tiempo antes que desea recibir un recordatorio",
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurface),
-              ),
-            ),
-            Localizations(
-              delegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-                DefaultWidgetsLocalizations.delegate,
-              ],
-              locale: const Locale('es'),
-              child: SizedBox(
-                height: 100,
-                child: CupertinoTheme(
-                  data: CupertinoThemeData(
-                      textTheme: CupertinoTextThemeData(
-                          pickerTextStyle: TextStyle(
-                              fontSize: 18,
-                              color:
-                                  Theme.of(context).colorScheme.onSurface),
-                          dateTimePickerTextStyle: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface)),
-                      brightness: Theme.of(context).brightness),
-                  child: CupertinoTimerPicker(
-                    initialTimerDuration: Duration(),
-                    mode: CupertinoTimerPickerMode.hm,
-                    onTimerDurationChanged: (Duration duration) {
-                      setState(() {
-                        DialogAddAlertWidget.alert = duration;
-                        if (widget.dateTime
-                                .subtract(DialogAddAlertWidget.alert)
-                                .compareTo(DateTime.now()) <
-                            0) {
-                          widget.errorMessageAlert =
-                              "La alerta no puede ser menor que la hora actual";
-                        } else if (DialogAddAlertWidget.alert
-                                .compareTo(Duration()) ==
-                            0) {
-                          widget.errorMessageAlert = "";
-                        }
-                      });
-                    },
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 120,
+              child: CupertinoTheme(
+                data: CupertinoThemeData(
+                  brightness: theme.brightness,
+                  textTheme: CupertinoTextThemeData(
+                    pickerTextStyle: style,
+                    dateTimePickerTextStyle: style,
                   ),
+                ),
+                child: CupertinoTimerPicker(
+                  initialTimerDuration: _alert,
+                  mode: CupertinoTimerPickerMode.hm,
+                  onTimerDurationChanged: (duration) => setState(() {
+                    _alert = duration;
+                    _error = _validate();
+                  }),
                 ),
               ),
             ),
-            if (widget.errorMessageAlert.isNotEmpty)
+            if (_error.isNotEmpty)
               ElasticIn(
                 child: Text(
-                  widget.errorMessageAlert,
-                  style: TextStyle(color: Colors.red[700], fontSize: 12),
+                  _error,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 12,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () async {
-                      if (widget.dateTime
-                          .isBefore(DateTime.now().add(Duration(minutes: 1)))) {
-                        setState(() {
-                          widget.errorMessageAlert =
-                              "Seleccione una fecha correcta para poder añadir una alarma o alerta";
-                        });
-                        widget.onChange!();
-                      } else if (widget.dateTime
-                              .subtract(DialogAddAlertWidget.alert)
-                              .compareTo(DateTime.now()) <
-                          0) {
-                        setState(() {
-                          widget.errorMessageAlert =
-                              "La alerta no puede ser menor que la hora actual";
-                        });
-                      } else {
-                        setState(() {
-                          widget.errorMessageAlert = "";
-                        });
-                        widget.onChange!();
-
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: const Text(
-                      "Guardar",
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        DialogAddAlertWidget.alert = Duration();
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      "Cancelar",
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ],
-              ),
-            )
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          FilledButton(
+            onPressed: () {
+              final error = _validate();
+              if (error.isEmpty) {
+                Navigator.pop(context, _alert);
+              } else {
+                setState(() => _error = error);
+              }
+            },
+            child: const Text("Guardar"),
+          ),
+        ],
       ),
     );
   }

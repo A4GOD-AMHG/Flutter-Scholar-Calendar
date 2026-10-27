@@ -1,29 +1,44 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility that Flutter provides. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:scholar_calendar/app.dart';
+import 'package:scholar_calendar/enums/event_type.dart';
+import 'package:scholar_calendar/models/alarm.dart';
+import 'package:scholar_calendar/models/event.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  test('EventType se convierte a texto y de vuelta', () {
+    for (final type in EventType.values) {
+      expect(EventTypeModel.fromString(type.asString), type);
+    }
+    expect(EventTypeModel.fromString('desconocido'), isNull);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('Event sobrevive a toMap/fromMap (formato de la base de datos)', () {
+    final event = Event(
+      name: 'Parcial',
+      eventType: EventType.exam,
+      startTime: DateTime(2026, 3, 10, 9),
+      endTime: DateTime(2026, 3, 10, 11),
+      color: const Color(0xFF094C90),
+      idSignature: 1,
+      idAlarm: 2,
+    );
+    final copy = Event.fromMap({...event.toMap(), 'id': 7});
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(copy.id, 7);
+    expect(copy.name, event.name);
+    expect(copy.eventType, event.eventType);
+    expect(copy.startTime, event.startTime);
+    expect(copy.endTime, event.endTime);
+    expect(copy.color, event.color);
+    expect(copy.idSignature, 1);
+    expect(copy.idAlarm, 2);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('Alarm sobrevive a toMap/fromMap', () {
+    final alarm = Alarm(description: null, time: DateTime(2026, 3, 10, 8, 45));
+    final copy = Alarm.fromMap({...alarm.toMap(), 'id': 3});
+    expect(copy.id, 3);
+    expect(copy.description, isNull);
+    expect(copy.time, alarm.time);
   });
 }

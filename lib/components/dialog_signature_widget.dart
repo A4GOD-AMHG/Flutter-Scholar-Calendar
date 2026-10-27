@@ -4,14 +4,21 @@ import 'package:scholar_calendar/controllers/database_controller.dart';
 import 'package:scholar_calendar/models/signature.dart';
 import 'package:scholar_calendar/screens/home_page.dart';
 import 'package:scholar_calendar/screens/signatures_details_page.dart';
+import 'package:scholar_calendar/utils/messages.dart';
+import 'package:sqflite/sqflite.dart';
 
-// ignore: must_be_immutable
+///[DialogSignatureWidget] diálogo para agregar o, si se pasa [signature], editar una asignatura
+///
+///[returnToHome] indica si tras guardar se vuelve al calendario o a la lista de asignaturas
 class DialogSignatureWidget extends StatefulWidget {
-  Signature? signature;
-  Widget? page;
+  final Signature? signature;
+  final bool returnToHome;
 
-  DialogSignatureWidget({this.signature, this.page, Key? key})
-      : super(key: key);
+  const DialogSignatureWidget({
+    this.signature,
+    this.returnToHome = false,
+    super.key,
+  });
 
   @override
   State<DialogSignatureWidget> createState() => _DialogSignatureWidgetState();
@@ -19,176 +26,129 @@ class DialogSignatureWidget extends StatefulWidget {
 
 class _DialogSignatureWidgetState extends State<DialogSignatureWidget> {
   final _formKey = GlobalKey<FormState>();
-  String? _textAddSignatureName;
-  String? _textAddSignatureNameSymbology;
+  late String _name = widget.signature?.name ?? "";
+  late String _symbology = widget.signature?.symbology ?? "";
+  bool _existSignatureName = false;
+  bool _existSignatureSymbology = false;
+  bool _saving = false;
 
-  late bool _existSignatureName;
-  late bool _existSignatureSymbology;
-
-  bool _editing = false;
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.signature == null) {
-      _textAddSignatureName = "";
-      _textAddSignatureNameSymbology = "";
-      _existSignatureName = false;
-      _existSignatureSymbology = false;
-    } else {
-      _textAddSignatureName = widget.signature!.name;
-      _textAddSignatureNameSymbology = widget.signature!.symbology;
-      _existSignatureName = true;
-      _existSignatureSymbology = true;
-      _editing = true;
-    }
-  }
+  bool get _editing => widget.signature != null;
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Stack(
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(
-                height: 20,
+    return AlertDialog(
+      icon: Icon(_editing ? Icons.edit_outlined : Icons.class_outlined),
+      title: Text("${_editing ? "Editar" : "Agregar"} Asignatura"),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              initialValue: _name,
+              autofocus: !_editing,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: "Nombre",
+                prefixIcon: Icon(Icons.title),
               ),
-              Text(
-                "${(_editing) ? "Editar" : "Agregar"} Asignatura",
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Theme.of(context).colorScheme.onSurface),
+              onSaved: (newValue) => _name = newValue!.trim(),
+              onChanged: containSignatureName,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return "Llene este campo";
+                }
+                if (_existSignatureName &&
+                    value.trim() != widget.signature?.name) {
+                  return "Esta asignatura ya existe";
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              initialValue: _symbology,
+              maxLength: 3,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                labelText: "Simbología",
+                prefixIcon: Icon(Icons.short_text),
               ),
-              Container(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        initialValue: _textAddSignatureName,
-                        decoration: InputDecoration(
-                          labelText: "Nombre",
-                          labelStyle: TextStyle(
-                              color:
-                                  Theme.of(context).colorScheme.onSurface),
-                        ),
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        onSaved: (newValue) {
-                          _textAddSignatureName = newValue!;
-                        },
-                        onChanged: containSignatureName,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return "Llene este campo";
-                          }
-
-                          if (_existSignatureName && !_editing) {
-                            return "Esta asignatura ya existe";
-                          }
-                        },
-                      ),
-                      TextFormField(
-                        initialValue: _textAddSignatureNameSymbology,
-                        maxLength: 3,
-                        decoration: InputDecoration(
-                          labelText: "Simbología",
-                          labelStyle: TextStyle(
-                              color:
-                                  Theme.of(context).colorScheme.onSurface),
-                        ),
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        onSaved: (newValue) {
-                          _textAddSignatureNameSymbology = newValue!;
-                        },
-                        onChanged: containSignatureSymbology,
-                        validator: (value) {
-                          if (value!.isEmpty || !value.isAlphabetOnly) {
-                            return "Este campo no puede contener espacios en\nblanco ni estar vacío, solamente 3 letras";
-                          }
-                          if (_existSignatureSymbology && !_editing) {
-                            return "Esta simbología ya existe";
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                padding: const EdgeInsets.all(20),
-              ),
-              Row(
-                children: [
-                  TextButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          bool isUpdated = false;
-                          if (_editing) {
-                            isUpdated = await databaseController
-                                .updateSignature(Signature(
-                                    id: widget.signature!.id,
-                                    name: _textAddSignatureName!,
-                                    symbology:
-                                        _textAddSignatureNameSymbology!));
-                          } else {
-                            _addSignature(_textAddSignatureName!,
-                                _textAddSignatureNameSymbology!);
-                          }
-                          _textAddSignatureName = "";
-                          _textAddSignatureNameSymbology = "";
-                          if (!_editing | isUpdated) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                backgroundColor: Colors.green,
-                                content: Text(
-                                    "Asignatura ${(_editing) ? "modificada" : "añadida"} satisfactoriamente")));
-                          }
-
-                          Get.offAll(() => widget.page is MyHomePage
-                              ? MyHomePage()
-                              : SignaturesDetailsPage());
-                        }
-                      },
-                      child: const Text(
-                        "Guardar",
-                        style: TextStyle(fontSize: 18),
-                      )),
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "Cancelar",
-                        style: TextStyle(fontSize: 18),
-                      ))
-                ],
-                mainAxisSize: MainAxisSize.min,
-              )
-            ],
-          )
-        ],
+              onSaved: (newValue) => _symbology = newValue!,
+              onChanged: containSignatureSymbology,
+              validator: (value) {
+                if (value == null || value.isEmpty || !value.isAlphabetOnly) {
+                  return "Solo letras, sin espacios (máx. 3)";
+                }
+                if (_existSignatureSymbology &&
+                    value != widget.signature?.symbology) {
+                  return "Esta simbología ya existe";
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancelar"),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: const Text("Guardar"),
+        ),
+      ],
     );
   }
 
-  Future<Signature?> _addSignature(String name, String symbology) async {
-    Signature signature = Signature(name: name, symbology: symbology);
-    Signature? nsignature = await databaseController.insertSignature(signature);
-    return nsignature;
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+    setState(() => _saving = true);
+    try {
+      if (_editing) {
+        await databaseController.updateSignature(
+          Signature(
+            id: widget.signature!.id,
+            name: _name,
+            symbology: _symbology,
+          ),
+        );
+      } else {
+        await databaseController.insertSignature(
+          Signature(name: _name, symbology: _symbology),
+        );
+      }
+    } on DatabaseException catch (e) {
+      // nombre o simbología duplicados (restricción UNIQUE)
+      if (mounted) setState(() => _saving = false);
+      showError(
+        e.isUniqueConstraintError()
+            ? "Ya existe una asignatura con ese nombre o simbología"
+            : "No se pudo guardar la asignatura",
+      );
+      return;
+    }
+    showSuccess(
+      "Asignatura ${_editing ? "modificada" : "añadida"} satisfactoriamente",
+    );
+    Get.offAll(
+      () => widget.returnToHome
+          ? const MyHomePage()
+          : const SignaturesDetailsPage(),
+    );
   }
 
   void containSignatureName(String signatureName) async {
-    _existSignatureName =
-        await databaseController.containSignatureName(signatureName);
+    _existSignatureName = await databaseController.containSignatureName(
+      signatureName.trim(),
+    );
   }
 
   void containSignatureSymbology(String signatureSymbology) async {
-    _existSignatureSymbology =
-        await databaseController.containSignatureSymbology(signatureSymbology);
+    _existSignatureSymbology = await databaseController
+        .containSignatureSymbology(signatureSymbology);
   }
 }
